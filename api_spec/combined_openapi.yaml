@@ -1,0 +1,307 @@
+openapi: 3.1.0
+info:
+  title: Game Voting API
+  description: |-
+    This API is meant as baseline functionality for a game voting tool that is combined with an Asyncapi specification for all the interative pieces.
+
+  # termsOfService: http://swagger.io/terms/
+  contact:
+    email: philipp.schmurr@gmail.com
+  license:
+    name: MIT
+    identifier: MIT
+    # url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 2.0.0
+# externalDocs:
+  # description: Find out more about Swagger
+  # url: http://swagger.io
+servers:
+  # - url: https://petstore3.swagger.io/api/v3
+  - url: http://DESKTOP-JSU69NL:1337
+tags:
+  - name: game
+    description: Everything about available games
+  - name: user
+    description: Operations about user
+  - name: image
+    description: Operations to deliver game images
+paths:
+  /images/{game_id}:
+    get:
+      tags:
+        - image
+      summary: Get a certain image
+      description: 'Receive the requested image from the database'
+      operationId: get_image
+      parameters:
+        - name: game_id
+          in: path
+          required: true
+          description: ID of the game to get the image for
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          # content:
+          #   image/png:
+          #     schema:
+          #       type: string
+          #       format: binary
+        '404':
+          description: not found
+  
+  /games:
+    get:
+      tags:
+        - game
+      summary: Get list of supported games
+      description: 'Receive game list'
+      operationId: get_games
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+    post:
+      tags:
+        - game
+      summary: Attempt to add a new game
+      description: Add a new game from a data record
+      operationId: create_game
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Game'
+          
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '400':
+          description: Invalid input or game id already taken
+        '422':
+          description: Validation exception
+  /games/from-steam:
+    post:
+      tags:
+        - game
+      summary: Attempt to add a game from a steam id
+      description: Scrapes the steam store for data
+      operationId: create_game_from_steam
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '400':
+          description: Invalid input or game id already taken
+        '422':
+          description: Validation exception
+
+  /user/login:
+    post:
+      tags:
+        - user
+      summary: Logs user into the system
+      description: ''
+      operationId: login_user
+      requestBody:
+        description: Desired user name
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            text/plain:
+              schema:
+                type: string
+        '400':
+          description: Userame already in use
+  
+components:
+  schemas:
+    Game:
+      type: object
+      properties:
+        ID:
+          type: string
+        Name:
+          type: string
+        SteamAppid:
+          type: string
+        detailed_description:
+          type: string
+        description:
+          type: string
+        Cover:
+          type: string
+          format: url
+        categories:
+          type: array
+          items:
+            type: string
+        genres:
+          type: array
+          items:
+            type: string
+        release_date:
+          type: string
+          format: date-time
+        Genre:
+          type: array
+          items:
+            type: string
+        MP:
+          type: string
+        Type:
+          type: string
+        Toplevel:
+          type: string
+        Meta:
+          type: array
+          items:
+            type: string
+        Parent:
+          type: [string, null]
+        Children:
+          type: array
+          items:
+            type: string
+        Readme:
+          type: string
+      required:
+        - ID
+        - Name
+        - Cover
+        - Parent
+        - Children
+        - Meta
+        - Toplevel
+        - Type
+        - MP
+        - Genre
+
+    Player:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        avatar:
+          type: string
+          format: url
+      required:
+        - id
+        - name
+    VotingSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: date-time
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Player'
+        
+    GameVotes:
+      type: object
+      properties:
+        game_id:
+          type: string
+        likes:
+          type: integer
+        abstains:
+          type: integer
+        dislikes:
+          type: integer
+      required:
+        - game_id
+        - likes
+        - abstains
+        - dislikes
+    
+    VotingSessionPublic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: date-time
+        game_votes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GameVotes'
+        is_finished:
+          type: boolean
+        
+
+
+        
+    Vote:
+      type: object
+      properties:
+        game_id:
+          type: string
+        user_id:
+          type: string
+        value:
+          type: integer
+          minimum: -1
+          maximum: 1
+      required:
+        - game_id
+        - user_id
+        - value
+      
+  # requestBodies:
+  #   Pet:
+  #     description: Pet object that needs to be added to the store
+  #     content:
+  #       application/json:
+  #         schema:
+  #           $ref: '#/components/schemas/Pet'
+  #       application/xml:
+  #         schema:
+  #           $ref: '#/components/schemas/Pet'
+  #   UserArray:
+  #     description: List of user object
+  #     content:
+  #       application/json:
+  #         schema:
+  #           type: array
+  #           items:
+  #             $ref: '#/components/schemas/User'
+  # securitySchemes:
+  #   petstore_auth:
+  #     type: oauth2
+  #     flows:
+  #       implicit:
+  #         authorizationUrl: https://petstore3.swagger.io/oauth/authorize
+  #         scopes:
+  #           write:pets: modify pets in your account
+  #           read:pets: read your pets
+  #   api_key:
+  #     type: apiKey
+  #     name: api_key
+  #     in: header
