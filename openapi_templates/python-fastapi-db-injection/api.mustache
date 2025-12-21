@@ -28,7 +28,7 @@ from {{modelPackage}}.extra_models import TokenModel  # noqa: F401
 {{import}}
 {{/imports}}
 {{#securityImports.0}}from {{packageName}}.security_api import {{#securityImports}}get_token_{{.}}{{^-last}}, {{/-last}}{{/securityImports}}{{/securityImports.0}}
-from gv_server.db import get_connection
+from gvt_db.db import get_connection
 
 router = APIRouter()
 

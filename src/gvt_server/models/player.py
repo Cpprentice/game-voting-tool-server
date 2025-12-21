@@ -3,7 +3,7 @@
 """
     Game Voting API
 
-    This API is meant as baseline functionality for a game voting tool that is combined with an Asyncapi specification for all the interative pieces.
+    This API is meant as baseline functionality for a game voting tool that is combined with an Asyncapi specification for all the interactive pieces.
 
     The version of the OpenAPI document: 2.0.0
     Contact: philipp.schmurr@gmail.com
@@ -21,22 +21,21 @@ import json
 
 
 
-from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List
+from pydantic import BaseModel, ConfigDict, StrictStr
+from typing import Any, ClassVar, Dict, List, Optional
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class GameVotes(BaseModel):
+class Player(BaseModel):
     """
-    GameVotes
+    Player
     """ # noqa: E501
-    game_id: StrictStr
-    likes: StrictInt
-    abstains: StrictInt
-    dislikes: StrictInt
-    __properties: ClassVar[List[str]] = ["game_id", "likes", "abstains", "dislikes"]
+    id: StrictStr
+    name: StrictStr
+    avatar: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["id", "name", "avatar"]
 
     model_config = {
         "populate_by_name": True,
@@ -56,7 +55,7 @@ class GameVotes(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of GameVotes from a JSON string"""
+        """Create an instance of Player from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -79,7 +78,7 @@ class GameVotes(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Dict) -> Self:
-        """Create an instance of GameVotes from a dict"""
+        """Create an instance of Player from a dict"""
         if obj is None:
             return None
 
@@ -89,13 +88,12 @@ class GameVotes(BaseModel):
         # raise errors for additional fields in the input
         for _key in obj.keys():
             if _key not in cls.__properties:
-                raise ValueError("Error due to additional fields (not defined in GameVotes) in the input: " + _key)
+                raise ValueError("Error due to additional fields (not defined in Player) in the input: " + _key)
 
         _obj = cls.model_validate({
-            "game_id": obj.get("game_id"),
-            "likes": obj.get("likes"),
-            "abstains": obj.get("abstains"),
-            "dislikes": obj.get("dislikes")
+            "id": obj.get("id"),
+            "name": obj.get("name"),
+            "avatar": obj.get("avatar")
         })
         return _obj
 

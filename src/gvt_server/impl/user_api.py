@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import Request, Response
 from pydantic import StrictStr, Field
 
-from gv_server.apis.user_api_base import BaseUserApi
+from gvt_server.apis.user_api_base import BaseUserApi
 
 
 class UserApi(BaseUserApi):

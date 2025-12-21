@@ -25,7 +25,7 @@ additionalProperties:
     #     false - No changes to the enum's are made, this is the default option.
     #     true - With this option enabled, each enum will have a new case, 'unknown_default_open_api', so that when the enum case sent by the server is not known by the client/spec, can safely be decoded to this case.
 
-    fastapiImplementationPackage: gv_server.impl
+    fastapiImplementationPackage: gvt_server.impl
     # python package name for the implementation code (convention: snake_case). (Default: impl)
 
     legacyDiscriminatorBehavior: true
@@ -33,7 +33,7 @@ additionalProperties:
     #     true - The mapping in the discriminator includes descendent schemas that allOf inherit from self and the discriminator mapping schemas in the OAS document.
     #     false - The mapping in the discriminator includes any descendent schemas that allOf inherit from self, any oneOf schemas, any anyOf schemas, any x-discriminator-values, and the discriminator mapping schemas in the OAS document AND Codegen validates that oneOf and anyOf schemas contain the required discriminator and throws an error if the discriminator is missing.
 
-    packageName: gv_server
+    packageName: gvt_server
     # python package name (convention: snake_case). (Default: openapi_server)
 
     packageVersion: "1.0.0"

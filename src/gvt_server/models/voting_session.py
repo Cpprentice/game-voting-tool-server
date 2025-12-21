@@ -3,7 +3,7 @@
 """
     Game Voting API
 
-    This API is meant as baseline functionality for a game voting tool that is combined with an Asyncapi specification for all the interative pieces.
+    This API is meant as baseline functionality for a game voting tool that is combined with an Asyncapi specification for all the interactive pieces.
 
     The version of the OpenAPI document: 2.0.0
     Contact: philipp.schmurr@gmail.com
@@ -24,7 +24,7 @@ import json
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 from typing import Any, ClassVar, Dict, List, Optional
-from gv_server.models.player import Player
+from gvt_server.models.player import Player
 try:
     from typing import Self
 except ImportError:

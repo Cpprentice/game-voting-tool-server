@@ -7,7 +7,7 @@ import sqlite3
 from pydantic import BaseModel
 # from sqlalchemy import Engine, text
 
-# from gv_server.models.game import Game
+# from gvt_server.models.game import Game
 
 # from sqlmodel import SQLModel, create_engine, Session
 # from sqlalchemy import select

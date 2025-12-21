@@ -8,9 +8,9 @@ from bs4 import BeautifulSoup
 from fastapi import Request, Response
 from pydantic import StrictStr
 
-from gv_server.apis.game_api_base import BaseGameApi
-from gv_server.models.game import Game
-from gv_server.db import gv_select, gv_insert
+from gvt_server.apis.game_api_base import BaseGameApi
+from gvt_server.models.game import Game
+from gvt_db.db import gv_select, gv_insert
 
 
 class GameApi(BaseGameApi):

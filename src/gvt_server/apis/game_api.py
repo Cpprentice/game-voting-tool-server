@@ -4,8 +4,8 @@ from typing import Dict, List  # noqa: F401
 import importlib
 import pkgutil
 
-from gv_server.apis.game_api_base import BaseGameApi
-import gv_server.impl
+from gvt_server.apis.game_api_base import BaseGameApi
+import gvt_server.impl
 
 from fastapi import (  # noqa: F401
     APIRouter,
@@ -23,16 +23,16 @@ from fastapi import (  # noqa: F401
     Request
 )
 
-from gv_server.models.extra_models import TokenModel  # noqa: F401
+from gvt_server.models.extra_models import TokenModel  # noqa: F401
 from pydantic import StrictStr
 from typing import Any, List, Optional
-from gv_server.models.game import Game
+from gvt_server.models.game import Game
 
-from gv_server.db import get_connection
+from gvt_db.db import get_connection
 
 router = APIRouter()
 
-ns_pkg = gv_server.impl
+ns_pkg = gvt_server.impl
 for _, name, _ in pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + "."):
     importlib.import_module(name)
 

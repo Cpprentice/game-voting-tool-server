@@ -3,7 +3,7 @@
 """
     Game Voting API
 
-    This API is meant as baseline functionality for a game voting tool that is combined with an Asyncapi specification for all the interative pieces.
+    This API is meant as baseline functionality for a game voting tool that is combined with an Asyncapi specification for all the interactive pieces.
 
     The version of the OpenAPI document: 2.0.0
     Contact: philipp.schmurr@gmail.com
@@ -21,21 +21,23 @@ import json
 
 
 
-from pydantic import BaseModel, ConfigDict, StrictStr
+from datetime import datetime
+from pydantic import BaseModel, ConfigDict, StrictBool
 from typing import Any, ClassVar, Dict, List, Optional
+from gvt_server.models.game_votes import GameVotes
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class Player(BaseModel):
+class VotingSessionPublic(BaseModel):
     """
-    Player
+    VotingSessionPublic
     """ # noqa: E501
-    id: StrictStr
-    name: StrictStr
-    avatar: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["id", "name", "avatar"]
+    id: Optional[datetime] = None
+    game_votes: Optional[List[GameVotes]] = None
+    is_finished: Optional[StrictBool] = None
+    __properties: ClassVar[List[str]] = ["id", "game_votes", "is_finished"]
 
     model_config = {
         "populate_by_name": True,
@@ -55,7 +57,7 @@ class Player(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of Player from a JSON string"""
+        """Create an instance of VotingSessionPublic from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -74,11 +76,18 @@ class Player(BaseModel):
             },
             exclude_none=True,
         )
+        # override the default output from pydantic by calling `to_dict()` of each item in game_votes (list)
+        _items = []
+        if self.game_votes:
+            for _item in self.game_votes:
+                if _item:
+                    _items.append(_item.to_dict())
+            _dict['game_votes'] = _items
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Dict) -> Self:
-        """Create an instance of Player from a dict"""
+        """Create an instance of VotingSessionPublic from a dict"""
         if obj is None:
             return None
 
@@ -88,12 +97,12 @@ class Player(BaseModel):
         # raise errors for additional fields in the input
         for _key in obj.keys():
             if _key not in cls.__properties:
-                raise ValueError("Error due to additional fields (not defined in Player) in the input: " + _key)
+                raise ValueError("Error due to additional fields (not defined in VotingSessionPublic) in the input: " + _key)
 
         _obj = cls.model_validate({
             "id": obj.get("id"),
-            "name": obj.get("name"),
-            "avatar": obj.get("avatar")
+            "game_votes": [GameVotes.from_dict(_item) for _item in obj.get("game_votes")] if obj.get("game_votes") is not None else None,
+            "is_finished": obj.get("is_finished")
         })
         return _obj
 

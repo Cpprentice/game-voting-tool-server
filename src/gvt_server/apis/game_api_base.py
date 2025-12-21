@@ -7,7 +7,7 @@ from fastapi import Request
 
 from pydantic import StrictStr
 from typing import Any, List, Optional
-from gv_server.models.game import Game
+from gvt_server.models.game import Game
 
 
 class BaseGameApi:

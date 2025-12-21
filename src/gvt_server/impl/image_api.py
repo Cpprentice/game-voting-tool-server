@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import Request, Response
 from pydantic import StrictStr, Field
 
-from gv_server.apis.image_api_base import BaseImageApi
+from gvt_server.apis.image_api_base import BaseImageApi
 
 
 class ImageApi(BaseImageApi):
