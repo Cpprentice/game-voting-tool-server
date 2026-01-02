@@ -21,36 +21,23 @@ import json
 
 
 
-from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
+from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class Game(BaseModel):
+class Game(SQLModel):
     """
     Game
     """ # noqa: E501
-    id: StrictStr = Field(alias="ID")
-    name: StrictStr = Field(alias="Name")
-    cover: StrictStr = Field(alias="Cover")
-    genre: List[StrictStr] = Field(alias="Genre")
-    mp: StrictStr = Field(alias="MP")
-    type: StrictStr = Field(alias="Type")
-    toplevel: StrictStr = Field(alias="Toplevel")
-    meta: List[StrictStr] = Field(alias="Meta")
-    parent: Optional[StrictStr] = Field(alias="Parent")
-    children: List[StrictStr] = Field(alias="Children")
-    steam_appid: Optional[StrictStr] = Field(default=None, alias="SteamAppid")
-    detailed_description: Optional[StrictStr] = None
-    description: Optional[StrictStr] = None
-    categories: Optional[List[StrictStr]] = None
-    genres: Optional[List[StrictStr]] = None
-    release_date: Optional[datetime] = None
-    readme: Optional[StrictStr] = Field(default=None, alias="Readme")
-    __properties: ClassVar[List[str]] = ["ID", "Name", "Cover", "Genre", "MP", "Type", "Toplevel", "Meta", "Parent", "Children", "SteamAppid", "detailed_description", "description", "categories", "genres", "release_date", "Readme"]
+    id: StrictStr
+    name: StrictStr
+    cover_url: StrictStr = Field(alias="coverUrl")
+    steam_appid: Optional[StrictStr] = Field(default=None, alias="steamAppid")
+    __properties: ClassVar[List[str]] = ["id", "name", "coverUrl", "steamAppid"]
 
     model_config = {
         "populate_by_name": True,
@@ -89,11 +76,6 @@ class Game(BaseModel):
             },
             exclude_none=True,
         )
-        # set to None if parent (nullable) is None
-        # and model_fields_set contains the field
-        if self.parent is None and "parent" in self.model_fields_set:
-            _dict['Parent'] = None
-
         return _dict
 
     @classmethod
@@ -111,23 +93,10 @@ class Game(BaseModel):
                 raise ValueError("Error due to additional fields (not defined in Game) in the input: " + _key)
 
         _obj = cls.model_validate({
-            "ID": obj.get("ID"),
-            "Name": obj.get("Name"),
-            "Cover": obj.get("Cover"),
-            "Genre": obj.get("Genre"),
-            "MP": obj.get("MP"),
-            "Type": obj.get("Type"),
-            "Toplevel": obj.get("Toplevel"),
-            "Meta": obj.get("Meta"),
-            "Parent": obj.get("Parent"),
-            "Children": obj.get("Children"),
-            "SteamAppid": obj.get("SteamAppid"),
-            "detailed_description": obj.get("detailed_description"),
-            "description": obj.get("description"),
-            "categories": obj.get("categories"),
-            "genres": obj.get("genres"),
-            "release_date": obj.get("release_date"),
-            "Readme": obj.get("Readme")
+            "id": obj.get("id"),
+            "name": obj.get("name"),
+            "coverUrl": obj.get("coverUrl"),
+            "steamAppid": obj.get("steamAppid")
         })
         return _obj
 

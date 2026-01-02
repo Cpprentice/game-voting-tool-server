@@ -25,12 +25,13 @@ from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
 from typing_extensions import Annotated
 from gvt_server.models.game import Game
+from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class Vote(BaseModel):
+class Vote(SQLModel):
     """
     Vote
     """ # noqa: E501

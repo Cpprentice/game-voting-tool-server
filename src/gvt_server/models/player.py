@@ -23,12 +23,13 @@ import json
 
 from pydantic import BaseModel, ConfigDict, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
+from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class Player(BaseModel):
+class Player(SQLModel):
     """
     Player
     """ # noqa: E501

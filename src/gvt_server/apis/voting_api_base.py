@@ -11,17 +11,18 @@ from typing import Any
 from typing_extensions import Annotated
 
 
-class BaseImageApi:
+class BaseVotingApi:
     subclasses: ClassVar[Tuple] = ()
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        BaseImageApi.subclasses = BaseImageApi.subclasses + (cls,)
-    async def get_image(
+        BaseVotingApi.subclasses = BaseVotingApi.subclasses + (cls,)
+    async def add_game_to_voting(
         self,
         request: Request,
         session: Session,
-        game_id: Annotated[StrictStr, Field(description="ID of the game to get the image for")],
+        session_id: Annotated[StrictStr, Field(description="the ID of the session to add the game to")],
+        game_id: Annotated[StrictStr, Field(description="ID of the game to add to the voting")],
     ) -> None:
-        """Receive the requested image from the database"""
+        """Attempt to add a game to the active voting by its ID"""
         ...

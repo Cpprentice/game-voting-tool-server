@@ -4,6 +4,7 @@ import sqlite3
 from typing import ClassVar, Dict, List, Tuple  # noqa: F401
 
 from fastapi import Request
+from sqlmodel import Session
 
 from pydantic import Field, StrictStr
 from typing import Any
@@ -19,7 +20,7 @@ class BaseUserApi:
     async def login_user(
         self,
         request: Request,
-        connection: sqlite3.Connection,
+        session: Session,
         body: Annotated[StrictStr, Field(description="Desired user name")],
     ) -> str:
         """"""

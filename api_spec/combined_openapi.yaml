@@ -137,93 +137,150 @@ paths:
                 type: string
         '400':
           description: Userame already in use
-  
+
+  /voting/{session_id}/games/{game_id}:
+    post:
+      tags:
+        - voting
+      summary: Attempt to add a game to the voting
+      description: Attempt to add a game to the active voting by its ID
+      operationId: add_game_to_voting
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          description: the ID of the session to add the game to
+          schema:
+            type: string
+        - name: game_id
+          in: path
+          required: true
+          description: ID of the game to add to the voting
+          schema:
+            type: string
+      responses:
+        '200':
+          description: game added successfully
+        '400':
+          description: game could not be added
+        '404':
+          description: game could not be found
 components:
   schemas:
     Game:
       type: object
       properties:
-        ID:
-          type: string
-        Name:
-          type: string
-        SteamAppid:
-          type: string
-        detailed_description:
-          type: string
-        description:
-          type: string
-        Cover:
-          type: string
-          format: url
-        categories:
-          type: array
-          items:
-            type: string
-        genres:
-          type: array
-          items:
-            type: string
-        release_date:
-          type: string
-          format: date-time
-        Genre:
-          type: array
-          items:
-            type: string
-        MP:
-          type: string
-        Type:
-          type: string
-        Toplevel:
-          type: string
-        Meta:
-          type: array
-          items:
-            type: string
-        Parent:
-          type: [string, null]
-        Children:
-          type: array
-          items:
-            type: string
-        Readme:
-          type: string
-      required:
-        - ID
-        - Name
-        - Cover
-        - Parent
-        - Children
-        - Meta
-        - Toplevel
-        - Type
-        - MP
-        - Genre
-
-    Player:
-      type: object
-      properties:
         id:
           type: string
+          # x-python-type: "str = Field(primary_key='True', nullable=False)"
         name:
           type: string
-        avatar:
+        steamAppid:
+          type: string
+#        detailed_description:
+#          type: string
+#        description:
+#          type: string
+        coverUrl:
           type: string
           format: url
+#        categories:
+#          type: array
+#          items:
+#            type: string
+#        genres:
+#          type: array
+#          items:
+#            type: string
+#        release_date:
+#          type: string
+#          format: date-time
+#        Genre:
+#          type: array
+#          items:
+#            type: string
+#        MP:
+#          type: string
+#        Type:
+#          type: string
+#        Toplevel:
+#          type: string
+#        Meta:
+#          type: array
+#          items:
+#            type: string
+#        Parent:
+#          type: [string, null]
+#        Children:
+#          type: array
+#          items:
+#            type: string
+#        Readme:
+#          type: string
       required:
         - id
         - name
+        - coverUrl
+#        - Parent
+#        - Children
+#        - Meta
+#        - Toplevel
+#        - Type
+#        - MP
+#        - Genre
+
+#    user_session:
+#      type: object
+#      properties:
+#        id:
+#          type: string
+#        user_name:
+#          type: string
+#        login_time:
+#          type: string
+#          format: date-time
+#        logout_time:
+#          type: string
+#          format: date-time
+##        avatar:
+##          type: string
+##          format: url
+#      required:
+#        - id
+#        - user_name
     VotingSession:
       type: object
+      required:
+        - id
+        - start_time
       properties:
         id:
           type: string
+#        participants:
+#          type: array
+#          items:
+#            $ref: '#/components/schemas/Player'
+        start_time:
+          type: string
           format: date-time
-        participants:
+        games:
           type: array
           items:
-            $ref: '#/components/schemas/Player'
+            $ref: '#/components/schemas/Game'
+          maxItems: 6
+#        game_id_1:
+#          type: ["string", "null"]
+#        game_id_2:
+#          type: ["string", "null"]
+#        game_id_3:
+#          type: ["string", "null"]
+#        game_id_4:
+#          type: ["string", "null"]
+#        game_id_5:
+#          type: ["string", "null"]
+#        game_id_6:
+#          type: ["string", "null"]
+
         
     GameVotes:
       type: object
@@ -258,25 +315,28 @@ components:
 
 
         
-    Vote:
-      type: object
-      properties:
-        game_id:
-          type: string
-          x-python-type: 'StrictStr = Field(foreign_key="game.id")'
-        game:
-          $ref: '#/components/schemas/Game'
-          x-python-type: 'Game = Relationship()'
-        user_id:
-          type: string
-        value:
-          type: integer
-          minimum: -1
-          maximum: 1
-      required:
-        - game_id
-        - user_id
-        - value
+#    Vote:
+#      type: object
+#      properties:
+#        voting_session_id:
+#          type: string
+#        game_id:
+#          type: string
+#          # x-python-type: 'StrictStr = Field(foreign_key="game.id")'
+#        # game:
+#          # $ref: '#/components/schemas/Game'
+#          # x-python-type: 'Game = Relationship()'
+#        user_name:
+#          type: string
+#        value:
+#          type: integer
+#          minimum: -1
+#          maximum: 1
+#      required:
+#        - voting_session_id
+#        - game_id
+#        - user_name
+#        - value
       
   # requestBodies:
   #   Pet:

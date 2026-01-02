@@ -28,7 +28,7 @@ from pydantic import StrictStr
 from typing import Any, List, Optional
 from gvt_server.models.game import Game
 
-from gvt_db.db import get_connection
+from gvt_db.db import SessionDependency
 
 router = APIRouter()
 
@@ -50,13 +50,13 @@ for _, name, _ in pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + "."):
 )
 async def create_game(
     request: Request,
-    connection = Depends(get_connection),
+    session: SessionDependency,
     game: Optional[Game] = Body(None, description=""),
 ) -> Game:
     """Add a new game from a data record"""
     if not BaseGameApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
-    return await BaseGameApi.subclasses[0]().create_game(request, connection, game)
+    return await BaseGameApi.subclasses[0]().create_game(request, session, game)
 
 
 @router.post(
@@ -72,13 +72,13 @@ async def create_game(
 )
 async def create_game_from_steam(
     request: Request,
-    connection = Depends(get_connection),
+    session: SessionDependency,
     body: Optional[StrictStr] = Body(None, description=""),
 ) -> Game:
     """Scrapes the steam store for data"""
     if not BaseGameApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
-    return await BaseGameApi.subclasses[0]().create_game_from_steam(request, connection, body)
+    return await BaseGameApi.subclasses[0]().create_game_from_steam(request, session, body)
 
 
 @router.get(
@@ -92,9 +92,9 @@ async def create_game_from_steam(
 )
 async def get_games(
     request: Request,
-    connection = Depends(get_connection),
+    session: SessionDependency,
 ) -> List[Game]:
     """Receive game list"""
     if not BaseGameApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
-    return await BaseGameApi.subclasses[0]().get_games(request, connection, )
+    return await BaseGameApi.subclasses[0]().get_games(request, session, )

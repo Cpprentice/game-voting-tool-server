@@ -7,8 +7,11 @@ import fake_useragent
 from bs4 import BeautifulSoup
 from fastapi import Request, Response
 from pydantic import StrictStr
+import sqlmodel
+from sqlmodel import select, col
 
 from gvt_server.apis.game_api_base import BaseGameApi
+from gvt_server.models.backend import GameBackend
 from gvt_server.models.game import Game
 from gvt_db.db import gv_select, gv_insert
 
@@ -17,14 +20,14 @@ class GameApi(BaseGameApi):
     async def create_game(
         self,
         request: Request,
-        connection: sqlite3.Connection,
+        session: sqlmodel.Session,
         game: Optional[Game],
     ) -> Game:
         """Add a new game from a data record"""
         connection = sqlite3.connect('database.db')
         inserted_game = gv_insert(game, connection)
 
-        image_url = game.cover
+        image_url = game.cover_url
         image_bytes = urllib.request.urlopen(image_url).read()
 
         with connection:
@@ -36,7 +39,7 @@ class GameApi(BaseGameApi):
     async def create_game_from_steam(
         self,
         request: Request,
-        connection: sqlite3.Connection,
+        session: sqlmodel.Session,
         body: Optional[StrictStr],
     ) -> Game:
         """Scrapes the steam store for data"""
@@ -49,7 +52,7 @@ class GameApi(BaseGameApi):
         new_game = Game(
             ID=body,
             name=steam_data['name'],
-            cover='',
+            cover_url='',
             genre=[x['description'] for x in steam_data['genres']],
             mp="yes",
             type="Base",
@@ -89,16 +92,26 @@ class GameApi(BaseGameApi):
     async def get_games(
         self,
         request: Request,
-        connection: sqlite3.Connection,
+        session: sqlmodel.Session,
     ) -> List[Game]:
         """Receive game list"""
-        connection = sqlite3.connect('database.db')
-        games = gv_select(Game, connection)
+        backend_games = list(session.exec(select(GameBackend).order_by(col(GameBackend.name))).all())
 
-        for game in games:
+        # connection = sqlite3.connect('database.db')
+        # games = gv_select(Game, connection)
+        games = [
+            backend_game.get_game(request)
+            for backend_game in backend_games
+        ]
+        return games
+
+        games = []
+        for backend_game in backend_games:
+            game = backend_game.get_game()
             image_url = str(request.url_for("get_image", game_id=game.id))  # This gives you the full URL
-            game.cover = image_url
+            game.cover_url = image_url
+            games.append(game)
 
-        _ = 42
-        connection.close()
+        # _ = 42
+        # connection.close()
         return games

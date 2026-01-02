@@ -28,7 +28,7 @@ from pydantic import Field, StrictStr
 from typing import Any
 from typing_extensions import Annotated
 
-from gvt_db.db import get_connection
+from gvt_db.db import SessionDependency
 
 router = APIRouter()
 
@@ -49,10 +49,10 @@ for _, name, _ in pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + "."):
 )
 async def get_image(
     request: Request,
-    connection = Depends(get_connection),
+    session: SessionDependency,
     game_id: Annotated[StrictStr, Field(description="ID of the game to get the image for")] = Path(..., description="ID of the game to get the image for"),
 ) -> None:
     """Receive the requested image from the database"""
     if not BaseImageApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
-    return await BaseImageApi.subclasses[0]().get_image(request, connection, game_id)
+    return await BaseImageApi.subclasses[0]().get_image(request, session, game_id)

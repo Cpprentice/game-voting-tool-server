@@ -23,12 +23,13 @@ import json
 
 from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr
 from typing import Any, ClassVar, Dict, List
+from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class GameVotes(BaseModel):
+class GameVotes(SQLModel):
     """
     GameVotes
     """ # noqa: E501

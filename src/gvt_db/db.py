@@ -2,9 +2,25 @@ import _thread
 import datetime
 import functools
 import json
+import os
 import sqlite3
+from pathlib import Path
+from typing import Annotated
 
+from alembic import command
+from alembic.autogenerate import compare_metadata, produce_migrations, render_op_text
+from alembic.autogenerate.api import AutogenContext
+from alembic.autogenerate.render import render_op
+from alembic.config import Config
+from alembic.runtime.environment import EnvironmentContext
+from alembic.runtime.migration import MigrationContext
+from alembic.script import ScriptDirectory
+from fastapi import Depends
 from pydantic import BaseModel
+from sqlmodel import create_engine, Session, SQLModel
+
+import gvt_server.models.backend
+
 # from sqlalchemy import Engine, text
 
 # from gvt_server.models.game import Game
@@ -12,27 +28,110 @@ from pydantic import BaseModel
 # from sqlmodel import SQLModel, create_engine, Session
 # from sqlalchemy import select
 
-class DBConnection:
-    def __init__(self):
-        self.raw_connection
-
-def get_connection() -> sqlite3.Connection:
-    thread_id = _thread.get_ident()
-    if thread_id in get_connection.storage:
-        return get_connection.storage[thread_id]
-    if len(get_connection.storage) == 0:
-        get_connection.storage[thread_id] = create_database()
-    else:
-        get_connection.storage[thread_id] = sqlite3.connect('database.db')
-    return get_connection.storage[thread_id]
+# class DBConnection:
+#     def __init__(self):
+#         self.raw_connection
 
 
-get_connection.storage = {}
+
+sqlite_file_name = "database.db"
+sqlite_url = f"sqlite:///{sqlite_file_name}"
+
+connect_args = {"check_same_thread": False}
+engine = create_engine(sqlite_url, connect_args=connect_args)
+
+alembic_config = Config()
+script_location = (Path(__file__).parent / 'alembic').as_posix()
+alembic_config.set_main_option("script_location", script_location)
+alembic_config.set_main_option("sqlalchemy.url", sqlite_url)
+alembic_config.attributes['engine'] = engine
+# script_directory = ScriptDirectory.from_config(alembic_config)
+# alembic_context = EnvironmentContext(alembic_config, script_directory)
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+
+SessionDependency = Annotated[Session, Depends(get_session)]
+
+
+def database_startup():
+    if not schema_is_up_to_date():
+        msg = 'Schema does not match'
+        print(msg)
+        run_migrations()
+        # raise RuntimeError(msg)
+
+
+def run_migrations():
+
+    # Run upgrade
+    command.upgrade(alembic_config, "head")
+
+
+
+def schema_is_up_to_date() -> bool:
+    with engine.connect() as conn:
+        context = MigrationContext.configure(conn)
+        diffs = compare_metadata(context, SQLModel.metadata)
+
+        diff_ops = produce_migrations(context, SQLModel.metadata)
+        gen_context = AutogenContext(context, SQLModel.metadata, {
+            'alembic_module_prefix': '',
+            'sqlalchemy_module_prefix': '',
+            'user_module_prefix': ''
+        })
+
+        sql_statements = [render_op_text(gen_context, op) for op in diff_ops.upgrade_ops.ops]
+        return len(diffs) == 0
+
+    # script = ScriptDirectory.from_config(alembic_config)
+    #
+    # def run_migrations(context):
+    #     return compare_metadata(context, SQLModel.metadata)
+    #
+    # with EnvironmentContext(alembic_config, script, fn=run_migrations) as context:
+    #     diffs = context.run_migrations()
+    #     return len(diffs) == 0
+
+
+
+# def get_connection():
+#     if not get_connection.created:
+#         create_database()
+#         get_connection.created = True
+#     conn = sqlite3.connect("database.db")
+#     try:
+#         yield conn
+#     finally:
+#         conn.close()
+#
+# get_connection.created = False
+
+# def get_connection() -> sqlite3.Connection:
+#     thread_id = _thread.get_ident()
+#     if thread_id in get_connection.storage:
+#         return get_connection.storage[thread_id]
+#     if len(get_connection.storage) == 0:
+#         get_connection.storage[thread_id] = create_database()
+#     else:
+#         get_connection.storage[thread_id] = sqlite3.connect('database.db')
+#     return get_connection.storage[thread_id]
+
+
+# get_connection.storage = {}
+
+
+def create_database_alembic():
+    command.upgrade(alembic_config, "head")
 
 
 def create_database() -> sqlite3.Connection:
     # engine = sqlite3.connect("sqlite:///database.db")
-    engine = sqlite3.connect("database.db")
+    # engine = sqlite3.connect("database.db")
+
+
 
     with engine:
         engine.execute('CREATE TABLE IF NOT EXISTS migrations (source_date TEXT PRIMARY KEY, applied_date TEXT NOT NULL);')

@@ -117,7 +117,7 @@ dependencies = [
   "fastapi==0.125.0",
   "pydantic==2.12.5",
   "alembic==1.17.2",
-  "sqlmodel==0.0.27"
+  "sqlmodel==0.0.31"
 ]
 
 # List additional groups of dependencies here (e.g. development
@@ -156,6 +156,7 @@ test = ["coverage"]
 # which executes the function `main` from this package when invoked.
 [project.scripts]
 # sample = "sample:main"
+insert-game-collection = "gvt_db.insert_game_collection:main"
 
 
 # This is configuration specific to the `setuptools` build backend.
@@ -164,3 +165,9 @@ test = ["coverage"]
 # If there are data files included in your packages that need to be
 # installed, specify them here.
 # package-data = { "sample" = ["*.dat"] }
+
+[tool.alembic]
+script_location = "%(here)s/src/gvt_db/alembic"
+prepend_sys_path = [
+    "."
+]

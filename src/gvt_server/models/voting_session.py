@@ -22,21 +22,24 @@ import json
 
 
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
-from gvt_server.models.player import Player
+from typing_extensions import Annotated
+from gvt_server.models.game import Game
+from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class VotingSession(BaseModel):
+class VotingSession(SQLModel):
     """
     VotingSession
     """ # noqa: E501
-    id: Optional[datetime] = None
-    participants: Optional[List[Player]] = None
-    __properties: ClassVar[List[str]] = ["id", "participants"]
+    id: StrictStr
+    start_time: datetime
+    games: Optional[Annotated[List[Game], Field(max_length=6)]] = None
+    __properties: ClassVar[List[str]] = ["id", "start_time", "games"]
 
     model_config = {
         "populate_by_name": True,
@@ -75,13 +78,13 @@ class VotingSession(BaseModel):
             },
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of each item in participants (list)
+        # override the default output from pydantic by calling `to_dict()` of each item in games (list)
         _items = []
-        if self.participants:
-            for _item in self.participants:
+        if self.games:
+            for _item in self.games:
                 if _item:
                     _items.append(_item.to_dict())
-            _dict['participants'] = _items
+            _dict['games'] = _items
         return _dict
 
     @classmethod
@@ -100,7 +103,8 @@ class VotingSession(BaseModel):
 
         _obj = cls.model_validate({
             "id": obj.get("id"),
-            "participants": [Player.from_dict(_item) for _item in obj.get("participants")] if obj.get("participants") is not None else None
+            "start_time": obj.get("start_time"),
+            "games": [Game.from_dict(_item) for _item in obj.get("games")] if obj.get("games") is not None else None
         })
         return _obj
 

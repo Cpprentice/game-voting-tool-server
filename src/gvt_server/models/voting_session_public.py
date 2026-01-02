@@ -25,12 +25,13 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, StrictBool
 from typing import Any, ClassVar, Dict, List, Optional
 from gvt_server.models.game_votes import GameVotes
+from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class VotingSessionPublic(BaseModel):
+class VotingSessionPublic(SQLModel):
     """
     VotingSessionPublic
     """ # noqa: E501

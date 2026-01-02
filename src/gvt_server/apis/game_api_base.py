@@ -4,6 +4,7 @@ import sqlite3
 from typing import ClassVar, Dict, List, Tuple  # noqa: F401
 
 from fastapi import Request
+from sqlmodel import Session
 
 from pydantic import StrictStr
 from typing import Any, List, Optional
@@ -19,7 +20,7 @@ class BaseGameApi:
     async def create_game(
         self,
         request: Request,
-        connection: sqlite3.Connection,
+        session: Session,
         game: Optional[Game],
     ) -> Game:
         """Add a new game from a data record"""
@@ -29,7 +30,7 @@ class BaseGameApi:
     async def create_game_from_steam(
         self,
         request: Request,
-        connection: sqlite3.Connection,
+        session: Session,
         body: Optional[StrictStr],
     ) -> Game:
         """Scrapes the steam store for data"""
@@ -39,7 +40,7 @@ class BaseGameApi:
     async def get_games(
         self,
         request: Request,
-        connection: sqlite3.Connection,
+        session: Session,
     ) -> List[Game]:
         """Receive game list"""
         ...
