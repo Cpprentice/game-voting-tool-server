@@ -15,7 +15,7 @@ class ImageApi(BaseImageApi):
         game_id: Annotated[StrictStr, Field(description="ID of the game to get the image for")],
     ) -> None:
         """Receive the requested image from the database"""
-        # connection = sqlite3.connect('database.db')
+        connection = sqlite3.connect('database-legacy.db')
         image_cursor = connection.execute(f'SELECT Data FROM Image WHERE ID = "{game_id}"')
         try:
             image_bytes = list(image_cursor)[0][0]

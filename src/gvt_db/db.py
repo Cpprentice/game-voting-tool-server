@@ -23,7 +23,7 @@ def get_connection() -> sqlite3.Connection:
     if len(get_connection.storage) == 0:
         get_connection.storage[thread_id] = create_database()
     else:
-        get_connection.storage[thread_id] = sqlite3.connect('database.db')
+        get_connection.storage[thread_id] = sqlite3.connect('database-legacy.db')
     return get_connection.storage[thread_id]
 
 
@@ -32,7 +32,7 @@ get_connection.storage = {}
 
 def create_database() -> sqlite3.Connection:
     # engine = sqlite3.connect("sqlite:///database.db")
-    engine = sqlite3.connect("database.db")
+    engine = sqlite3.connect("database-legacy.db")
 
     with engine:
         engine.execute('CREATE TABLE IF NOT EXISTS migrations (source_date TEXT PRIMARY KEY, applied_date TEXT NOT NULL);')

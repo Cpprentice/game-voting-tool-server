@@ -3,8 +3,8 @@ import sqlite3
 import urllib.request
 from typing import Optional, List
 
-import fake_useragent
-from bs4 import BeautifulSoup
+# import fake_useragent
+# from bs4 import BeautifulSoup
 from fastapi import Request, Response
 from pydantic import StrictStr
 
@@ -21,7 +21,7 @@ class GameApi(BaseGameApi):
         game: Optional[Game],
     ) -> Game:
         """Add a new game from a data record"""
-        connection = sqlite3.connect('database.db')
+        connection = sqlite3.connect('database-legacy.db')
         inserted_game = gv_insert(game, connection)
 
         image_url = game.cover
@@ -64,7 +64,7 @@ class GameApi(BaseGameApi):
             release_date=None,  # steam_data['release_date']['date'],
             readme=steam_data['about_the_game']
         )
-        connection = sqlite3.connect('database.db')
+        connection = sqlite3.connect('database-legacy.db')
         inserted_game = gv_insert(new_game, connection)
 
         # # scrape image
@@ -92,7 +92,7 @@ class GameApi(BaseGameApi):
         connection: sqlite3.Connection,
     ) -> List[Game]:
         """Receive game list"""
-        connection = sqlite3.connect('database.db')
+        connection = sqlite3.connect('database-legacy.db')
         games = gv_select(Game, connection)
 
         for game in games:
