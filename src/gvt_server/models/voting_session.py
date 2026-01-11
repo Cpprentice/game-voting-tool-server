@@ -24,8 +24,8 @@ import json
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
-from typing_extensions import Annotated
-from gvt_server.models.game import Game
+from gvt_server.models.game_votes import GameVotes
+from gvt_server.models.user_votes import UserVotes
 from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
@@ -37,9 +37,12 @@ class VotingSession(SQLModel):
     VotingSession
     """ # noqa: E501
     id: StrictStr
-    start_time: datetime
-    games: Optional[Annotated[List[Game], Field(max_length=6)]] = None
-    __properties: ClassVar[List[str]] = ["id", "start_time", "games"]
+    game_votes: List[GameVotes] = Field(alias="gameVotes")
+    user_votes: List[UserVotes] = Field(alias="userVotes")
+    start_time: Optional[datetime] = Field(default=None, alias="startTime")
+    finish_time: Optional[datetime] = Field(default=None, alias="finishTime")
+    cancel_time: Optional[datetime] = Field(default=None, alias="cancelTime")
+    __properties: ClassVar[List[str]] = ["id", "gameVotes", "userVotes", "startTime", "finishTime", "cancelTime"]
 
     model_config = {
         "populate_by_name": True,
@@ -78,13 +81,20 @@ class VotingSession(SQLModel):
             },
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of each item in games (list)
+        # override the default output from pydantic by calling `to_dict()` of each item in game_votes (list)
         _items = []
-        if self.games:
-            for _item in self.games:
+        if self.game_votes:
+            for _item in self.game_votes:
                 if _item:
                     _items.append(_item.to_dict())
-            _dict['games'] = _items
+            _dict['gameVotes'] = _items
+        # override the default output from pydantic by calling `to_dict()` of each item in user_votes (list)
+        _items = []
+        if self.user_votes:
+            for _item in self.user_votes:
+                if _item:
+                    _items.append(_item.to_dict())
+            _dict['userVotes'] = _items
         return _dict
 
     @classmethod
@@ -103,8 +113,11 @@ class VotingSession(SQLModel):
 
         _obj = cls.model_validate({
             "id": obj.get("id"),
-            "start_time": obj.get("start_time"),
-            "games": [Game.from_dict(_item) for _item in obj.get("games")] if obj.get("games") is not None else None
+            "gameVotes": [GameVotes.from_dict(_item) for _item in obj.get("gameVotes")] if obj.get("gameVotes") is not None else None,
+            "userVotes": [UserVotes.from_dict(_item) for _item in obj.get("userVotes")] if obj.get("userVotes") is not None else None,
+            "startTime": obj.get("startTime"),
+            "finishTime": obj.get("finishTime"),
+            "cancelTime": obj.get("cancelTime")
         })
         return _obj
 

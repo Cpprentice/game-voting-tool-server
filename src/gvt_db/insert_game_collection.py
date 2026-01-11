@@ -2,11 +2,10 @@ import csv
 import ctypes
 import sys
 
-from sqlmodel import create_engine, Session, select
+from sqlmodel import Session, select
 
-from gvt_db.db import engine, get_session
-from gvt_server.models.backend import GameBackend, Image
-
+from gvt_db.db import get_session
+from gvt_server.db_models import GameBackend, Image
 
 MAX_SIGNED_LONG = (1 << (8 * ctypes.sizeof(ctypes.c_long) - 1)) - 1
 

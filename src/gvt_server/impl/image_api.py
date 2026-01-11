@@ -6,7 +6,7 @@ from pydantic import StrictStr, Field
 from sqlmodel import Session, select
 
 from gvt_server.apis.image_api_base import BaseImageApi
-from gvt_server.models.backend import Image
+from gvt_server.db_models import Image
 
 
 class ImageApi(BaseImageApi):

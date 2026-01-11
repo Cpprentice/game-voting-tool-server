@@ -21,24 +21,21 @@ import json
 
 
 
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict, StrictBool
-from typing import Any, ClassVar, Dict, List, Optional
-from gvt_server.models.game_votes import GameVotes
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr
+from typing import Any, ClassVar, Dict, List, Union
 from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class VotingSessionPublic(SQLModel):
+class UserGameVote(SQLModel):
     """
-    VotingSessionPublic
+    UserGameVote
     """ # noqa: E501
-    id: Optional[datetime] = None
-    game_votes: Optional[List[GameVotes]] = None
-    is_finished: Optional[StrictBool] = None
-    __properties: ClassVar[List[str]] = ["id", "game_votes", "is_finished"]
+    user_name: StrictStr = Field(alias="userName")
+    value: Union[StrictFloat, StrictInt]
+    __properties: ClassVar[List[str]] = ["userName", "value"]
 
     model_config = {
         "populate_by_name": True,
@@ -58,7 +55,7 @@ class VotingSessionPublic(SQLModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of VotingSessionPublic from a JSON string"""
+        """Create an instance of UserGameVote from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -77,18 +74,11 @@ class VotingSessionPublic(SQLModel):
             },
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of each item in game_votes (list)
-        _items = []
-        if self.game_votes:
-            for _item in self.game_votes:
-                if _item:
-                    _items.append(_item.to_dict())
-            _dict['game_votes'] = _items
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Dict) -> Self:
-        """Create an instance of VotingSessionPublic from a dict"""
+        """Create an instance of UserGameVote from a dict"""
         if obj is None:
             return None
 
@@ -98,12 +88,11 @@ class VotingSessionPublic(SQLModel):
         # raise errors for additional fields in the input
         for _key in obj.keys():
             if _key not in cls.__properties:
-                raise ValueError("Error due to additional fields (not defined in VotingSessionPublic) in the input: " + _key)
+                raise ValueError("Error due to additional fields (not defined in UserGameVote) in the input: " + _key)
 
         _obj = cls.model_validate({
-            "id": obj.get("id"),
-            "game_votes": [GameVotes.from_dict(_item) for _item in obj.get("game_votes")] if obj.get("game_votes") is not None else None,
-            "is_finished": obj.get("is_finished")
+            "userName": obj.get("userName"),
+            "value": obj.get("value")
         })
         return _obj
 

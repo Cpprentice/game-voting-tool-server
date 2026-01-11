@@ -28,6 +28,7 @@ def upgrade() -> None:
         sa.Column('id', sm.AutoString(), primary_key=True),
         sa.Column('user_name', sm.AutoString(), nullable=False),
         sa.Column('login_time', sa.DateTime, nullable=False),
+        sa.Column('last_alive_time', sa.DateTime, nullable=False),
         sa.Column('logout_time', sa.DateTime, nullable=True),
     )
 

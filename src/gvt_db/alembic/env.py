@@ -1,13 +1,13 @@
 from alembic import context
-from sqlalchemy import engine_from_config, pool
 import sqlmodel
 
-import gvt_server.models.backend
+import gvt_server.db_models  # import that alembic can use the metamodel
 from gvt_db.db import alembic_config
 
-# config = context.config
+
 config = alembic_config
-target_metadata = sqlmodel.SQLModel.metadata  # your SQLAlchemy metadata
+target_metadata = sqlmodel.SQLModel.metadata
+
 
 def run_migrations_offline():
     url = config.get_main_option("sqlalchemy.url")

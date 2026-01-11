@@ -132,6 +132,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   # "check-manifest"
+  "mypy==1.19.1"
 ]
 test = ["coverage"]
 
@@ -157,6 +158,7 @@ test = ["coverage"]
 [project.scripts]
 # sample = "sample:main"
 insert-game-collection = "gvt_db.insert_game_collection:main"
+extract-game-collection = "gvt_db.extract_game_collection:main"
 
 
 # This is configuration specific to the `setuptools` build backend.

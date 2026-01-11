@@ -27,16 +27,12 @@ def upgrade() -> None:
         'voting_session',
         sa.Column('id', sm.AutoString(), primary_key=True),
         sa.Column('start_time', sa.DateTime, nullable=False),
-        sa.Column('game_id_1', sm.AutoString(), nullable=True),
-        sa.Column('game_id_2', sm.AutoString(), nullable=True),
-        sa.Column('game_id_3', sm.AutoString(), nullable=True),
-        sa.Column('game_id_4', sm.AutoString(), nullable=True),
-        sa.Column('game_id_5', sm.AutoString(), nullable=True),
-        sa.Column('game_id_6', sm.AutoString(), nullable=True),
+        sa.Column('finish_time', sa.DateTime, nullable=True),
+        sa.Column('cancel_time', sa.DateTime, nullable=True),
     )
 
     op.create_table(
-        'vote',
+        'voting_session_user_vote',
         sa.Column('voting_session_id', sm.AutoString(), primary_key=True),
         sa.Column('user_session_id', sm.AutoString(), primary_key=True),
         sa.Column('game_id', sm.AutoString(), primary_key=True),
@@ -46,11 +42,25 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(['game_id'], ['game.id']),
     )
 
+    op.create_table(
+        'voting_session_game',
+        sa.Column('voting_session_id', sm.AutoString(), primary_key=True),
+        sa.Column('user_session_id', sm.AutoString(), primary_key=True),
+        sa.Column('game_id', sm.AutoString(), primary_key=True),
+        sa.ForeignKeyConstraint(['game_id'], ['game.id'], ),
+        sa.ForeignKeyConstraint(['user_session_id'], ['user_session.id'], ),
+        sa.ForeignKeyConstraint(['voting_session_id'], ['voting_session.id'], ),
+        sa.PrimaryKeyConstraint('voting_session_id', 'user_session_id', 'game_id')
+    )
+
 
 def downgrade() -> None:
     """Downgrade schema."""
-    generate_table_backup(revision, 'vote')
-    op.drop_table('vote')
+    generate_table_backup(revision, 'voting_session_user_vote')
+    op.drop_table('voting_session_user_vote')
+
+    generate_table_backup(revision, 'voting_session_game')
+    op.drop_table('voting_session_game')
 
     generate_table_backup(revision, 'voting_session')
     op.drop_table('voting_session')

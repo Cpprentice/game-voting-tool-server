@@ -14,7 +14,8 @@ src/gvt_server/models/__init__.py
 src/gvt_server/models/extra_models.py
 src/gvt_server/models/game.py
 src/gvt_server/models/game_votes.py
+src/gvt_server/models/user_game_vote.py
+src/gvt_server/models/user_votes.py
 src/gvt_server/models/voting_session.py
-src/gvt_server/models/voting_session_public.py
 src/gvt_server/security_api.py
 tests/conftest.py
