@@ -22,21 +22,27 @@ import json
 
 
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
-from gvt_server.models.player import Player
+from gvt_server.models.game_votes import GameVotes
+from gvt_server.models.user_votes import UserVotes
+from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class VotingSession(BaseModel):
+class VotingSession(SQLModel):
     """
     VotingSession
     """ # noqa: E501
-    id: Optional[datetime] = None
-    participants: Optional[List[Player]] = None
-    __properties: ClassVar[List[str]] = ["id", "participants"]
+    id: StrictStr
+    game_votes: List[GameVotes] = Field(alias="gameVotes")
+    user_votes: List[UserVotes] = Field(alias="userVotes")
+    start_time: Optional[datetime] = Field(default=None, alias="startTime")
+    finish_time: Optional[datetime] = Field(default=None, alias="finishTime")
+    cancel_time: Optional[datetime] = Field(default=None, alias="cancelTime")
+    __properties: ClassVar[List[str]] = ["id", "gameVotes", "userVotes", "startTime", "finishTime", "cancelTime"]
 
     model_config = {
         "populate_by_name": True,
@@ -75,13 +81,20 @@ class VotingSession(BaseModel):
             },
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of each item in participants (list)
+        # override the default output from pydantic by calling `to_dict()` of each item in game_votes (list)
         _items = []
-        if self.participants:
-            for _item in self.participants:
+        if self.game_votes:
+            for _item in self.game_votes:
                 if _item:
                     _items.append(_item.to_dict())
-            _dict['participants'] = _items
+            _dict['gameVotes'] = _items
+        # override the default output from pydantic by calling `to_dict()` of each item in user_votes (list)
+        _items = []
+        if self.user_votes:
+            for _item in self.user_votes:
+                if _item:
+                    _items.append(_item.to_dict())
+            _dict['userVotes'] = _items
         return _dict
 
     @classmethod
@@ -100,7 +113,11 @@ class VotingSession(BaseModel):
 
         _obj = cls.model_validate({
             "id": obj.get("id"),
-            "participants": [Player.from_dict(_item) for _item in obj.get("participants")] if obj.get("participants") is not None else None
+            "gameVotes": [GameVotes.from_dict(_item) for _item in obj.get("gameVotes")] if obj.get("gameVotes") is not None else None,
+            "userVotes": [UserVotes.from_dict(_item) for _item in obj.get("userVotes")] if obj.get("userVotes") is not None else None,
+            "startTime": obj.get("startTime"),
+            "finishTime": obj.get("finishTime"),
+            "cancelTime": obj.get("cancelTime")
         })
         return _obj
 

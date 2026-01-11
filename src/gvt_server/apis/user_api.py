@@ -28,7 +28,7 @@ from pydantic import Field, StrictStr
 from typing import Any
 from typing_extensions import Annotated
 
-from gvt_db.db import get_connection
+from gvt_db.db import SessionDependency
 
 router = APIRouter()
 
@@ -49,10 +49,10 @@ for _, name, _ in pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + "."):
 )
 async def login_user(
     request: Request,
-    connection = Depends(get_connection),
+    session: SessionDependency,
     body: Annotated[StrictStr, Field(description="Desired user name")] = Body(None, description="Desired user name"),
 ) -> str:
     """"""
     if not BaseUserApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
-    return await BaseUserApi.subclasses[0]().login_user(request, connection, body)
+    return await BaseUserApi.subclasses[0]().login_user(request, session, body)

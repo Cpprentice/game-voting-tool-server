@@ -4,6 +4,7 @@ import sqlite3
 from typing import ClassVar, Dict, List, Tuple  # noqa: F401
 
 from fastapi import Request
+from sqlmodel import Session
 
 from pydantic import Field, StrictStr
 from typing import Any
@@ -19,7 +20,7 @@ class BaseImageApi:
     async def get_image(
         self,
         request: Request,
-        connection: sqlite3.Connection,
+        session: Session,
         game_id: Annotated[StrictStr, Field(description="ID of the game to get the image for")],
     ) -> None:
         """Receive the requested image from the database"""

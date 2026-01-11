@@ -18,6 +18,7 @@ from fastapi import FastAPI
 from gvt_server.apis.game_api import router as GameApiRouter
 from gvt_server.apis.image_api import router as ImageApiRouter
 from gvt_server.apis.user_api import router as UserApiRouter
+from gvt_server.apis.voting_api import router as VotingApiRouter
 try:
     from gvt_server.impl.lifespan import before_app_start
 except ImportError:
@@ -33,5 +34,6 @@ app = FastAPI(
 app.include_router(GameApiRouter)
 app.include_router(ImageApiRouter)
 app.include_router(UserApiRouter)
+app.include_router(VotingApiRouter)
 
 before_app_start(app)

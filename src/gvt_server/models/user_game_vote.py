@@ -21,24 +21,21 @@ import json
 
 
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
-from typing_extensions import Annotated
-from gvt_server.models.game import Game
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr
+from typing import Any, ClassVar, Dict, List, Union
+from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class Vote(BaseModel):
+class UserGameVote(SQLModel):
     """
-    Vote
+    UserGameVote
     """ # noqa: E501
-    game_id: StrictStr
-    user_id: StrictStr
-    value: Annotated[int, Field(le=1, strict=True, ge=-1)]
-    game: Optional[Game] = None
-    __properties: ClassVar[List[str]] = ["game_id", "user_id", "value", "game"]
+    user_name: StrictStr = Field(alias="userName")
+    value: Union[StrictFloat, StrictInt]
+    __properties: ClassVar[List[str]] = ["userName", "value"]
 
     model_config = {
         "populate_by_name": True,
@@ -58,7 +55,7 @@ class Vote(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of Vote from a JSON string"""
+        """Create an instance of UserGameVote from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -77,14 +74,11 @@ class Vote(BaseModel):
             },
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of game
-        if self.game:
-            _dict['game'] = self.game.to_dict()
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Dict) -> Self:
-        """Create an instance of Vote from a dict"""
+        """Create an instance of UserGameVote from a dict"""
         if obj is None:
             return None
 
@@ -94,13 +88,11 @@ class Vote(BaseModel):
         # raise errors for additional fields in the input
         for _key in obj.keys():
             if _key not in cls.__properties:
-                raise ValueError("Error due to additional fields (not defined in Vote) in the input: " + _key)
+                raise ValueError("Error due to additional fields (not defined in UserGameVote) in the input: " + _key)
 
         _obj = cls.model_validate({
-            "game_id": obj.get("game_id"),
-            "user_id": obj.get("user_id"),
-            "value": obj.get("value"),
-            "game": Game.from_dict(obj.get("game")) if obj.get("game") is not None else None
+            "userName": obj.get("userName"),
+            "value": obj.get("value")
         })
         return _obj
 

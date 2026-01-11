@@ -137,175 +137,163 @@ paths:
                 type: string
         '400':
           description: Userame already in use
-  
+
+  /voting-session/{session_id}/participant/{user_id}/games/{game_id}:
+    post:
+      tags:
+        - voting
+      summary: Attempt to add a game to the voting
+      description: Attempt to add a game to the active voting by its ID
+      operationId: add_game_to_voting
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          description: the ID of the session to add the game to
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          required: true
+          description: the user that attempts to add the game
+          schema:
+            type: string
+        - name: game_id
+          in: path
+          required: true
+          description: ID of the game to add to the voting
+          schema:
+            type: string
+      responses:
+        '200':
+          description: game added successfully
+        '400':
+          description: game could not be added
+        '404':
+          description: game could not be found
+  /voting-session/{session_id}/participant/{user_id}/games/{game_id}/vote:
+    post:
+      tags:
+        - voting
+      summary: Set a voting value
+      description: Set your voting value for a specific game in a specific session
+      operationId: cast_vote
+      parameters:
+        -   name: session_id
+            in: path
+            required: true
+            description: the ID of the session to cast the vote in
+            schema:
+              type: string
+        -   name: user_id
+            in: path
+            required: true
+            description: the user that casts the vote
+            schema:
+              type: string
+        -   name: game_id
+            in: path
+            required: true
+            description: the game the vote is cast for
+            schema:
+              type: string
+      requestBody:
+        required: true
+        description: the value of the vote to be cast
+        content:
+          application/json:
+            schema:
+              type: integer
+      responses:
+        '200':
+          description: vote cast successfully
+        '400':
+          description: vote could not be cast
+        '404':
+          description: session, user, or game could not be found
 components:
   schemas:
     Game:
-      type: object
-      properties:
-        ID:
-          type: string
-        Name:
-          type: string
-        SteamAppid:
-          type: string
-        detailed_description:
-          type: string
-        description:
-          type: string
-        Cover:
-          type: string
-          format: url
-        categories:
-          type: array
-          items:
-            type: string
-        genres:
-          type: array
-          items:
-            type: string
-        release_date:
-          type: string
-          format: date-time
-        Genre:
-          type: array
-          items:
-            type: string
-        MP:
-          type: string
-        Type:
-          type: string
-        Toplevel:
-          type: string
-        Meta:
-          type: array
-          items:
-            type: string
-        Parent:
-          type: [string, null]
-        Children:
-          type: array
-          items:
-            type: string
-        Readme:
-          type: string
-      required:
-        - ID
-        - Name
-        - Cover
-        - Parent
-        - Children
-        - Meta
-        - Toplevel
-        - Type
-        - MP
-        - Genre
-
-    Player:
       type: object
       properties:
         id:
           type: string
         name:
           type: string
-        avatar:
+        steamAppid:
+          type: string
+        coverUrl:
           type: string
           format: url
       required:
         - id
         - name
+        - coverUrl
     VotingSession:
       type: object
+      required:
+        - id
+        - start_time
+        - gameVotes
+        - userVotes
       properties:
         id:
           type: string
+        startTime:
+          type: string
           format: date-time
-        participants:
+        finishTime:
+          type: string
+          format: date-time
+        cancelTime:
+          type: string
+          format: date-time
+        gameVotes:
           type: array
           items:
-            $ref: '#/components/schemas/Player'
-        
+            $ref: '#/components/schemas/GameVotes'
+        userVotes:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserVotes'
+    UserGameVote:
+      type: object
+      properties:
+        userName:
+          type: string
+        value:
+          type: number
+      required:
+        - userName
+        - value
     GameVotes:
       type: object
       properties:
-        game_id:
-          type: string
+        game:
+          $ref: '#/components/schemas/Game'
         likes:
           type: integer
         abstains:
           type: integer
         dislikes:
           type: integer
+        userVotes:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGameVote'
       required:
-        - game_id
+        - game
         - likes
         - abstains
         - dislikes
-    
-    VotingSessionPublic:
+        - userVotes
+    UserVotes:
       type: object
       properties:
-        id:
+        userName:
           type: string
-          format: date-time
-        game_votes:
-          type: array
-          items:
-            $ref: '#/components/schemas/GameVotes'
-        is_finished:
-          type: boolean
-        
-
-
-        
-    Vote:
-      type: object
-      properties:
-        game_id:
-          type: string
-          x-python-type: 'StrictStr = Field(foreign_key="game.id")'
-        game:
-          $ref: '#/components/schemas/Game'
-          x-python-type: 'Game = Relationship()'
-        user_id:
-          type: string
-        value:
-          type: integer
-          minimum: -1
-          maximum: 1
+        votes:
+          type: number
       required:
-        - game_id
-        - user_id
-        - value
-      
-  # requestBodies:
-  #   Pet:
-  #     description: Pet object that needs to be added to the store
-  #     content:
-  #       application/json:
-  #         schema:
-  #           $ref: '#/components/schemas/Pet'
-  #       application/xml:
-  #         schema:
-  #           $ref: '#/components/schemas/Pet'
-  #   UserArray:
-  #     description: List of user object
-  #     content:
-  #       application/json:
-  #         schema:
-  #           type: array
-  #           items:
-  #             $ref: '#/components/schemas/User'
-  # securitySchemes:
-  #   petstore_auth:
-  #     type: oauth2
-  #     flows:
-  #       implicit:
-  #         authorizationUrl: https://petstore3.swagger.io/oauth/authorize
-  #         scopes:
-  #           write:pets: modify pets in your account
-  #           read:pets: read your pets
-  #   api_key:
-  #     type: apiKey
-  #     name: api_key
-  #     in: header
+        - userName
+        - votes

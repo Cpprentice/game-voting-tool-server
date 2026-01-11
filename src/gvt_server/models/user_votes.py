@@ -21,21 +21,21 @@ import json
 
 
 
-from pydantic import BaseModel, ConfigDict, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr
+from typing import Any, ClassVar, Dict, List, Union
+from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class Player(BaseModel):
+class UserVotes(SQLModel):
     """
-    Player
+    UserVotes
     """ # noqa: E501
-    id: StrictStr
-    name: StrictStr
-    avatar: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["id", "name", "avatar"]
+    user_name: StrictStr = Field(alias="userName")
+    votes: Union[StrictFloat, StrictInt]
+    __properties: ClassVar[List[str]] = ["userName", "votes"]
 
     model_config = {
         "populate_by_name": True,
@@ -55,7 +55,7 @@ class Player(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of Player from a JSON string"""
+        """Create an instance of UserVotes from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -78,7 +78,7 @@ class Player(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Dict) -> Self:
-        """Create an instance of Player from a dict"""
+        """Create an instance of UserVotes from a dict"""
         if obj is None:
             return None
 
@@ -88,12 +88,11 @@ class Player(BaseModel):
         # raise errors for additional fields in the input
         for _key in obj.keys():
             if _key not in cls.__properties:
-                raise ValueError("Error due to additional fields (not defined in Player) in the input: " + _key)
+                raise ValueError("Error due to additional fields (not defined in UserVotes) in the input: " + _key)
 
         _obj = cls.model_validate({
-            "id": obj.get("id"),
-            "name": obj.get("name"),
-            "avatar": obj.get("avatar")
+            "userName": obj.get("userName"),
+            "votes": obj.get("votes")
         })
         return _obj
 

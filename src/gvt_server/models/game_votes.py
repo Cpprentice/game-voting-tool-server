@@ -21,22 +21,26 @@ import json
 
 
 
-from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictInt
 from typing import Any, ClassVar, Dict, List
+from gvt_server.models.game import Game
+from gvt_server.models.user_game_vote import UserGameVote
+from sqlmodel import SQLModel, Field, Relationship
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class GameVotes(BaseModel):
+class GameVotes(SQLModel):
     """
     GameVotes
     """ # noqa: E501
-    game_id: StrictStr
+    game: Game
     likes: StrictInt
     abstains: StrictInt
     dislikes: StrictInt
-    __properties: ClassVar[List[str]] = ["game_id", "likes", "abstains", "dislikes"]
+    user_votes: List[UserGameVote] = Field(alias="userVotes")
+    __properties: ClassVar[List[str]] = ["game", "likes", "abstains", "dislikes", "userVotes"]
 
     model_config = {
         "populate_by_name": True,
@@ -75,6 +79,16 @@ class GameVotes(BaseModel):
             },
             exclude_none=True,
         )
+        # override the default output from pydantic by calling `to_dict()` of game
+        if self.game:
+            _dict['game'] = self.game.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of each item in user_votes (list)
+        _items = []
+        if self.user_votes:
+            for _item in self.user_votes:
+                if _item:
+                    _items.append(_item.to_dict())
+            _dict['userVotes'] = _items
         return _dict
 
     @classmethod
@@ -92,10 +106,11 @@ class GameVotes(BaseModel):
                 raise ValueError("Error due to additional fields (not defined in GameVotes) in the input: " + _key)
 
         _obj = cls.model_validate({
-            "game_id": obj.get("game_id"),
+            "game": Game.from_dict(obj.get("game")) if obj.get("game") is not None else None,
             "likes": obj.get("likes"),
             "abstains": obj.get("abstains"),
-            "dislikes": obj.get("dislikes")
+            "dislikes": obj.get("dislikes"),
+            "userVotes": [UserGameVote.from_dict(_item) for _item in obj.get("userVotes")] if obj.get("userVotes") is not None else None
         })
         return _obj
 
