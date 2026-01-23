@@ -84,3 +84,27 @@ async def cast_vote(
     if not BaseVotingApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
     return await BaseVotingApi.subclasses[0]().cast_vote(request, session, session_id, user_id, game_id, body)
+
+
+@router.put(
+    "/voting-session/{session_id}/participant/{user_id}/reset",
+    responses={
+        200: {"description": "vote cast successfully"},
+        400: {"description": "vote could not be cast"},
+        404: {"description": "session, or user could not be found"},
+    },
+    tags=["voting"],
+    summary="Indicate if you want to set or revoke your reset vote",
+    response_model_by_alias=True,
+)
+async def set_reset_vote(
+    request: Request,
+    session: SessionDependency,
+    session_id: Annotated[StrictStr, Field(description="the ID of the session to add the game to")] = Path(..., description="the ID of the session to add the game to"),
+    user_id: Annotated[StrictStr, Field(description="the user that attempts to add the game")] = Path(..., description="the user that attempts to add the game"),
+    body: Annotated[StrictInt, Field(description="the value of the vote to be cast")] = Body(None, description="the value of the vote to be cast"),
+) -> None:
+    """Players can indicate if they want to reset or re-roll the voting session a majority triggers that accordingly."""
+    if not BaseVotingApi.subclasses:
+        raise HTTPException(status_code=500, detail="Not implemented")
+    return await BaseVotingApi.subclasses[0]().set_reset_vote(request, session, session_id, user_id, body)

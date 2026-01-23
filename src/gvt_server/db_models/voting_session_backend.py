@@ -6,11 +6,13 @@ from sqlalchemy import literal_column
 from sqlmodel import Field, Relationship, Session, select
 
 from gvt_logic.util import UrlFactory
+from gvt_server.db_models.voting_session_reset import VotingSessionReset
 from gvt_server.db_models.user_session import UserSession
 from gvt_server.db_models.voting_session_game import VotingSessionGame
 from gvt_server.db_models.voting_session_user_vote import VotingSessionUserVote
 from gvt_server.models.game_votes import GameVotes
 from gvt_server.models.user_game_vote import UserGameVote
+from gvt_server.models.user_reset_vote import UserResetVote
 from gvt_server.models.user_votes import UserVotes
 from gvt_server.models.voting_session import VotingSession
 
@@ -25,6 +27,7 @@ class VotingSessionBackend(VotingSession, table=True):
     # Hide the original fields for the database (they will be serialized when converting to the base class only)
     game_votes: ClassVar[list[GameVotes]]
     user_votes: ClassVar[list[UserVotes]]
+    reset_votes: ClassVar[list[UserResetVote]]
 
     # introduce relationships for database handling
     session_user_votes: list[VotingSessionUserVote] = Relationship(back_populates='voting_session')
@@ -35,6 +38,7 @@ class VotingSessionBackend(VotingSession, table=True):
             # The order_by will use the SQLite rowid feature to ensure the order of the games does not change randomly
         )
     )
+    session_reset_votes: list[VotingSessionReset] = Relationship(back_populates='voting_session')
 
     game_slot_count: ClassVar[int] = 6
 
@@ -184,10 +188,22 @@ class VotingSessionBackend(VotingSession, table=True):
         ]
         return user_votes
 
+    def _reset_votes(self, session: Session) -> list[UserResetVote]:
+        return [
+            UserResetVote(
+                user_name=vote.user_session.user_name,
+                value=1
+            )
+            for vote in self.session_reset_votes
+            if vote.value == 1
+            and vote.user_session_id in UserSession.get_active_session_ids(session)
+        ]
+
     def get_voting_session(self, url_factory: UrlFactory, session: Session) -> VotingSession:
         return VotingSession(
             user_votes=self._user_votes(session),
             game_votes=self._game_votes(session, url_factory),
+            reset_votes=self._reset_votes(session),
             **self.model_dump()
         )
 

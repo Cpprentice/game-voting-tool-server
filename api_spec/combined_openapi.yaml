@@ -137,7 +137,42 @@ paths:
                 type: string
         '400':
           description: Userame already in use
-
+  /voting-session/{session_id}/participant/{user_id}/reset:
+    put:
+      tags:
+        - voting
+      summary: Indicate if you want to set or revoke your reset vote
+      description: Players can indicate if they want to reset or re-roll the voting session a majority triggers that accordingly.
+      operationId: set_reset_vote
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          description: the ID of the session to add the game to
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          required: true
+          description: the user that attempts to add the game
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: the value of the vote to be cast
+        content:
+          application/json:
+            schema:
+              type: integer
+              minValue: 0
+              maxValue: 1
+      responses:
+        '200':
+          description: vote cast successfully
+        '400':
+          description: vote could not be cast
+        '404':
+          description: session, or user could not be found
   /voting-session/{session_id}/participant/{user_id}/games/{game_id}:
     post:
       tags:
@@ -236,6 +271,7 @@ components:
         - start_time
         - gameVotes
         - userVotes
+        - resetVotes
       properties:
         id:
           type: string
@@ -256,13 +292,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserVotes'
+        resetVotes:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserResetVote'
     UserGameVote:
       type: object
       properties:
         userName:
           type: string
         value:
-          type: number
+          type: integer
+      required:
+        - userName
+        - value
+    UserResetVote:
+      type: object
+      properties:
+        userName:
+          type: string
+        value:
+          type: integer
+          minValue: 0
+          maxValue: 1
       required:
         - userName
         - value

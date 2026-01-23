@@ -29,9 +29,9 @@ try:
 except ImportError:
     from typing_extensions import Self
 
-class UserGameVote(SQLModel):
+class UserResetVote(SQLModel):
     """
-    UserGameVote
+    UserResetVote
     """ # noqa: E501
     user_name: StrictStr = Field(alias="userName")
     value: StrictInt
@@ -55,7 +55,7 @@ class UserGameVote(SQLModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of UserGameVote from a JSON string"""
+        """Create an instance of UserResetVote from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -78,7 +78,7 @@ class UserGameVote(SQLModel):
 
     @classmethod
     def from_dict(cls, obj: Dict) -> Self:
-        """Create an instance of UserGameVote from a dict"""
+        """Create an instance of UserResetVote from a dict"""
         if obj is None:
             return None
 
@@ -88,7 +88,7 @@ class UserGameVote(SQLModel):
         # raise errors for additional fields in the input
         for _key in obj.keys():
             if _key not in cls.__properties:
-                raise ValueError("Error due to additional fields (not defined in UserGameVote) in the input: " + _key)
+                raise ValueError("Error due to additional fields (not defined in UserResetVote) in the input: " + _key)
 
         _obj = cls.model_validate({
             "userName": obj.get("userName"),

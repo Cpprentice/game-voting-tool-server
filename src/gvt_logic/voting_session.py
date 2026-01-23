@@ -20,6 +20,16 @@ def create_new_voting_session():
     session.commit()
 
 
+def close_active_voting_session(was_cancelled: bool, session: Session):
+    voting_session = get_active_voting_session_backend(session)
+    now = datetime.datetime.now()
+    if was_cancelled:
+        voting_session.cancel_time = now
+    else:
+        voting_session.finish_time = now
+    session.add(voting_session)
+
+
 def get_active_voting_session_backend(session: Session) -> VotingSessionBackend:
     active_voting_session: VotingSessionBackend = session.exec(
         select(VotingSessionBackend)
@@ -41,6 +51,12 @@ async def _handle_voting_session_update(url_factory: UrlFactory):
     if active_voting_session.is_resolved(session, url_factory):
         await broadcast_voting_state(active_voting_session.get_voting_session(url_factory, session))
         await broadcast_voting_result(active_voting_session.result(session, url_factory))
+        close_active_voting_session(False, session)
+        session.close()
+        create_new_voting_session()
+        await broadcast_voting_state(get_active_voting_session(url_factory))
+    elif active_voting_session.needs_reset(session):
+        close_active_voting_session(True, session)
         session.close()
         create_new_voting_session()
         await broadcast_voting_state(get_active_voting_session(url_factory))

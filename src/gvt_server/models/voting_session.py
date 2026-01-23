@@ -25,6 +25,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
 from gvt_server.models.game_votes import GameVotes
+from gvt_server.models.user_reset_vote import UserResetVote
 from gvt_server.models.user_votes import UserVotes
 from sqlmodel import SQLModel, Field, Relationship
 try:
@@ -39,10 +40,11 @@ class VotingSession(SQLModel):
     id: StrictStr
     game_votes: List[GameVotes] = Field(alias="gameVotes")
     user_votes: List[UserVotes] = Field(alias="userVotes")
+    reset_votes: List[UserResetVote] = Field(alias="resetVotes")
     start_time: Optional[datetime] = Field(default=None, alias="startTime")
     finish_time: Optional[datetime] = Field(default=None, alias="finishTime")
     cancel_time: Optional[datetime] = Field(default=None, alias="cancelTime")
-    __properties: ClassVar[List[str]] = ["id", "gameVotes", "userVotes", "startTime", "finishTime", "cancelTime"]
+    __properties: ClassVar[List[str]] = ["id", "gameVotes", "userVotes", "resetVotes", "startTime", "finishTime", "cancelTime"]
 
     model_config = {
         "populate_by_name": True,
@@ -95,6 +97,13 @@ class VotingSession(SQLModel):
                 if _item:
                     _items.append(_item.to_dict())
             _dict['userVotes'] = _items
+        # override the default output from pydantic by calling `to_dict()` of each item in reset_votes (list)
+        _items = []
+        if self.reset_votes:
+            for _item in self.reset_votes:
+                if _item:
+                    _items.append(_item.to_dict())
+            _dict['resetVotes'] = _items
         return _dict
 
     @classmethod
@@ -115,6 +124,7 @@ class VotingSession(SQLModel):
             "id": obj.get("id"),
             "gameVotes": [GameVotes.from_dict(_item) for _item in obj.get("gameVotes")] if obj.get("gameVotes") is not None else None,
             "userVotes": [UserVotes.from_dict(_item) for _item in obj.get("userVotes")] if obj.get("userVotes") is not None else None,
+            "resetVotes": [UserResetVote.from_dict(_item) for _item in obj.get("resetVotes")] if obj.get("resetVotes") is not None else None,
             "startTime": obj.get("startTime"),
             "finishTime": obj.get("finishTime"),
             "cancelTime": obj.get("cancelTime")

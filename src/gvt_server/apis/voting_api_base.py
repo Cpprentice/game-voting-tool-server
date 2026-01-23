@@ -40,3 +40,15 @@ class BaseVotingApi:
     ) -> None:
         """Set your voting value for a specific game in a specific session"""
         ...
+
+
+    async def set_reset_vote(
+        self,
+        request: Request,
+        session: Session,
+        session_id: Annotated[StrictStr, Field(description="the ID of the session to add the game to")],
+        user_id: Annotated[StrictStr, Field(description="the user that attempts to add the game")],
+        body: Annotated[StrictInt, Field(description="the value of the vote to be cast")],
+    ) -> None:
+        """Players can indicate if they want to reset or re-roll the voting session a majority triggers that accordingly."""
+        ...
