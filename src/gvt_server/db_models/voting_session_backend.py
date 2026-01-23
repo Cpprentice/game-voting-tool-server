@@ -1,9 +1,9 @@
 import collections
 from datetime import datetime
-from typing import ClassVar
+from typing import ClassVar, Self
 
 from sqlalchemy import literal_column
-from sqlmodel import Field, Relationship, Session
+from sqlmodel import Field, Relationship, Session, select
 
 from gvt_logic.util import UrlFactory
 from gvt_server.db_models.user_session import UserSession
@@ -36,15 +36,31 @@ class VotingSessionBackend(VotingSession, table=True):
         )
     )
 
+    game_slot_count: ClassVar[int] = 6
+
+    @classmethod
+    def get_by_id(cls, voting_session_id: str, db_session: Session) -> Self | None:
+        return db_session.exec(select(VotingSessionBackend).where(VotingSessionBackend.id == voting_session_id)).first()
+
     def result(self, session: Session, url_factory: UrlFactory) -> list[GameVotes]:
-        max_score, vote_stats = self._score_histogram(session, url_factory)
+        max_score, vote_stats = self._score_histogram(session, url_factory, False)
         return [
             game_vote
             for score in sorted(vote_stats.keys(), reverse=True)
             for game_vote in vote_stats[score]
         ]
 
-    def _score_histogram(self, session: Session, url_factory: UrlFactory) -> tuple[int, dict[int, list[GameVotes]]]:
+    @staticmethod
+    def _get_missing_votes(voter_count: int, game_votes: GameVotes) -> int:
+        return voter_count - sum([game_votes.likes, game_votes.abstains, game_votes.dislikes])
+
+    def _score_histogram(
+            self,
+            session: Session,
+            url_factory: UrlFactory,
+            missing_vote_multiplier: int,
+            exclude_game_votes: GameVotes = None
+    ) -> tuple[int, dict[int, list[GameVotes]]]:
         votes = self._game_votes(session, url_factory)
         voter_count = len(UserSession.get_active_sessions(session))
 
@@ -56,19 +72,50 @@ class VotingSessionBackend(VotingSession, table=True):
         vote_stats: dict[int, list[GameVotes]] = collections.defaultdict(list)
         max_score = 0
         for vote in votes:
-            missing_votes = voter_count - sum([vote.likes, vote.abstains, vote.dislikes])
-            max_possible = vote.likes - vote.dislikes + missing_votes
-            vote_stats[max_possible].append(vote)
-            max_score = max(max_score, max_possible)
+            if vote == exclude_game_votes:
+                continue
+            missing_votes = self._get_missing_votes(voter_count, vote)
+            score = vote.likes - vote.dislikes + missing_vote_multiplier * missing_votes
+            vote_stats[score].append(vote)
+            max_score = max(max_score, score)
 
         return max_score, vote_stats
+
+    def needs_reset(self, session: Session) -> bool:
+        return len(self._reset_votes(session)) > UserSession.get_active_session_count(session) / 2
 
     def is_resolved(self, session: Session, url_factory: UrlFactory) -> bool:
         if len(self.session_games) < 2:
             return False
 
-        max_score, vote_stats = self._score_histogram(session, url_factory)
-        return len(vote_stats[max_score]) == 1
+        # Example scenario
+        #  4 Voters
+        #  GameA +2 -0
+        #  GameB +2 -1
+        #  GameC +2 -2
+        #  GameD +3 -1
+        #  GameE +0 -0
+        #
+        #  Game, Score, Max Score, Min Score
+        #  A, +2, +4, +0
+        #  B, +1, +2, +0
+        #  C, +0, +0, +0
+        #  D, +2, +2, +2
+        #  E, +0, +4, -4
+
+        max_score, vote_stats = self._score_histogram(session, url_factory, 0)
+        votes_best = vote_stats[max_score]
+        if len(votes_best) != 1:
+            return False
+
+        best = votes_best[0]
+        lower_bound = (
+            best.likes - best.dislikes -
+            self._get_missing_votes(UserSession.get_active_session_count(session), best)
+        )
+
+        others_max_score, _ = self._score_histogram(session, url_factory, 1, exclude_game_votes=best)
+        return others_max_score < lower_bound
 
     @staticmethod
     def _default_user_votes(
@@ -168,7 +215,7 @@ class VotingSessionBackend(VotingSession, table=True):
             session.add(new_vote)
 
     def try_to_add_game(self, game_id: str, user_id: str, session: Session) -> bool:
-        if len(self.session_games) == 6:
+        if len(self.session_games) == self.game_slot_count:
             # voting session already full
             return False
 

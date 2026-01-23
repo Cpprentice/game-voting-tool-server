@@ -26,3 +26,10 @@ class UserSession(SQLModel, table=True):
         # db_session.exec(text('SELECT count(*) FROM user_session WHERE logout_time IS NULL')).scalar_one()
         # db_session.exec(select(cls).where(cls.logout_time.is_(None)).count()).scalar_one()
         return len(cls.get_active_sessions(db_session))
+
+    @classmethod
+    def get_active_session_ids(cls, db_session: Session) -> set[str]:
+        return {
+            user.id
+            for user in cls.get_active_sessions(db_session)
+        }
