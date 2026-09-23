@@ -14,7 +14,10 @@ from gvt_server.models.game_votes import GameVotes
 from gvt_server.models.user_game_vote import UserGameVote
 from gvt_server.models.user_reset_vote import UserResetVote
 from gvt_server.models.user_votes import UserVotes
+from gvt_server.models.voting_result_message import VotingResultMessage
 from gvt_server.models.voting_session import VotingSession
+from gvt_server.models.voting_session_message import VotingSessionMessage
+from gvt_server.models.websocket_message_type import WebsocketMessageType
 
 
 class VotingSessionBackend(VotingSession, table=True):
@@ -46,13 +49,13 @@ class VotingSessionBackend(VotingSession, table=True):
     def get_by_id(cls, voting_session_id: str, db_session: Session) -> Self | None:
         return db_session.exec(select(VotingSessionBackend).where(VotingSessionBackend.id == voting_session_id)).first()
 
-    def result(self, session: Session, url_factory: UrlFactory) -> list[GameVotes]:
+    def result(self, session: Session, url_factory: UrlFactory) -> VotingResultMessage:
         max_score, vote_stats = self._score_histogram(session, url_factory, False)
-        return [
+        return VotingResultMessage(type=WebsocketMessageType.RESULT, body=[
             game_vote
             for score in sorted(vote_stats.keys(), reverse=True)
             for game_vote in vote_stats[score]
-        ]
+        ])
 
     @staticmethod
     def _get_missing_votes(voter_count: int, game_votes: GameVotes) -> int:
@@ -199,13 +202,14 @@ class VotingSessionBackend(VotingSession, table=True):
             and vote.user_session_id in UserSession.get_active_session_ids(session)
         ]
 
-    def get_voting_session(self, url_factory: UrlFactory, session: Session) -> VotingSession:
-        return VotingSession(
+    def get_voting_session(self, url_factory: UrlFactory, session: Session) -> VotingSessionMessage:
+        voting_session = VotingSession(
             user_votes=self._user_votes(session),
             game_votes=self._game_votes(session, url_factory),
             reset_votes=self._reset_votes(session),
             **self.model_dump()
         )
+        return VotingSessionMessage(type=WebsocketMessageType.VOTING_SESSION, body=voting_session)
 
     def find_user_vote(self, game_id: str, user_id: str) -> VotingSessionUserVote | None:
         for vote in self.session_user_votes:
@@ -230,14 +234,12 @@ class VotingSessionBackend(VotingSession, table=True):
             )
             session.add(new_vote)
 
-    def try_to_add_game(self, game_id: str, user_id: str, session: Session) -> bool:
+    def try_to_add_game(self, game_id: str, user_id: str, session: Session) -> str | None:
         if len(self.session_games) == self.game_slot_count:
-            # voting session already full
-            return False
+            return 'Voting session already full'
 
         if game_id in {session_game.game.id for session_game in self.session_games}:
-            # Game is already in voting session
-            return False
+            return 'Game is already in voting session'
 
         user_count = UserSession.get_active_session_count(session)
         allowed_games_per_user = int(len(self.session_games) / user_count) + 1
@@ -253,5 +255,5 @@ class VotingSessionBackend(VotingSession, table=True):
                 game_id=game_id,
                 user_session_id=user_id,
             ))
-            return True
-        return False
+            return None
+        return f'Game insert allowance exceeded ({game_count_from_user}/{allowed_games_per_user})'

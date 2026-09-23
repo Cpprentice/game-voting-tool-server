@@ -20,16 +20,17 @@ class VotingApi(BaseVotingApi):
     ) -> None:
         voting_session: VotingSessionBackend = session.exec(select(VotingSessionBackend).where(VotingSessionBackend.id == session_id)).first()
         if voting_session is None:
-            return Response(status_code=404)
+            return Response('Voting session not found', status_code=404)
         user_session = UserSession.get_active_session(session, user_id)
         if user_session is None:
-            return Response(status_code=404)
+            return Response('User session not found', status_code=404)
         game = session.exec(select(GameBackend).where(GameBackend.id == game_id)).first()
         if game is None:
-            return Response(status_code=404)
+            return Response('Game not found', status_code=404)
         with session.begin(nested=True):
-            if not voting_session.try_to_add_game(game_id, user_id, session):
-                return Response(status_code=400)
+            error_message = voting_session.try_to_add_game(game_id, user_id, session)
+            if error_message is not None:
+                return Response(error_message, status_code=400)
             session.add(voting_session)
             session.commit()
         handle_voting_session_update(request)

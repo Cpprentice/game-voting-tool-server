@@ -9,6 +9,8 @@ from gvt_db.db import get_session
 from gvt_logic.connections import websocket_list
 from gvt_logic.voting_session import get_active_voting_session, handle_voting_session_update
 from gvt_server.db_models import UserSession
+from gvt_server.models.voting_session_message import VotingSessionMessage
+from gvt_server.models.websocket_message import WebsocketMessage
 
 
 def close_user_session(user_id: str):

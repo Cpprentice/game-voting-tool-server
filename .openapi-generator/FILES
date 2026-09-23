@@ -17,6 +17,11 @@ src/gvt_server/models/game_votes.py
 src/gvt_server/models/user_game_vote.py
 src/gvt_server/models/user_reset_vote.py
 src/gvt_server/models/user_votes.py
+src/gvt_server/models/voting_cancellation_message.py
+src/gvt_server/models/voting_result_message.py
 src/gvt_server/models/voting_session.py
+src/gvt_server/models/voting_session_message.py
+src/gvt_server/models/websocket_message.py
+src/gvt_server/models/websocket_message_type.py
 src/gvt_server/security_api.py
 tests/conftest.py

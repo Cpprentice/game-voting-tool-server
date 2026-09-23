@@ -349,3 +349,67 @@ components:
       required:
         - userName
         - votes
+
+    # this enum is only used as a convenience to see available message types - it does
+    #  hold no meaning in the oneOf pattern
+    WebsocketMessageType:
+      type: string
+      enum:
+        - voting_session
+        - result
+        - cancellation
+    WebsocketMessage:
+      oneOf:
+        - $ref: '#/components/schemas/VotingSessionMessage'
+        - $ref: '#/components/schemas/VotingResultMessage'
+        - $ref: '#/components/schemas/VotingCancellationMessage'
+      discriminator:
+        propertyName: type
+        mapping:
+          voting_session: '#/components/schemas/VotingSessionMessage'
+          result: '#/components/schemas/VotingResultMessage'
+          cancellation: '#/components/schemas/VotingCancellationMessage'
+
+    VotingSessionMessage:
+      type: object
+      required:
+        - type
+        - body
+      properties:
+        type:
+          # $ref: '#/components/schemas/WebsocketMessageType'
+          type: string
+          default: voting_session
+          # const: voting_session
+        body:
+          $ref: '#/components/schemas/VotingSession'
+    VotingResultMessage:
+      type: object
+      required:
+        - type
+        - body
+      properties:
+        type:
+          type: string
+          # $ref: '#/components/schemas/WebsocketMessageType'
+          default: result
+          # const: result
+        body:
+          type: array
+          items:
+            $ref: '#/components/schemas/GameVotes'
+    VotingCancellationMessage:
+      type: object
+      required:
+        - type
+        - body
+      properties:
+        type:
+          type: string
+          # $ref: '#/components/schemas/WebsocketMessageType'
+          # const: cancellation
+          default: cancellation
+        body:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserResetVote'
